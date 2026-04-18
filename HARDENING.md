@@ -1,4 +1,4 @@
-# Hardening Report: release-drafter--release-drafter/v7.0.0
+# Hardening Report: release-drafter--release-drafter--autolabeler/v7.0.0
 
 > This file was generated automatically by the hardening agent.
 
@@ -6,5 +6,5 @@
 
 **Test Policy SHA:** `f2e7d85641cde4267138117189b8eba7ba2bfbde`
 
-Action **release-drafter--release-drafter/v7.0.0** was hardened automatically. 0 finding(s) were identified and resolved across 0 iteration(s).
+Action **release-drafter--release-drafter--autolabeler/v7.0.0** was hardened automatically. 0 finding(s) were identified and resolved across 0 iteration(s).
 
