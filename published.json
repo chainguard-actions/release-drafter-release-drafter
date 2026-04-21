@@ -1,4 +1,4 @@
 {
-  "upstream": "release-drafter/release-drafter/autolabeler",
+  "upstream": "release-drafter/release-drafter",
   "version": "v7.0.0"
 }
