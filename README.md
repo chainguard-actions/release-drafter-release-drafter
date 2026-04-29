@@ -1,6 +1,12 @@
 # release-drafter/release-drafter
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/release-drafter/release-drafter](https://github.com/release-drafter/release-drafter).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v7.0.0 | [`v7.0.0`](https://github.com/chainguard-actions/release-drafter/tree/v7.0.0) | — |
 
 ## Privacy
 
