@@ -1,5 +1,7 @@
 # release-drafter/release-drafter
 
+Drafts your next release notes as pull requests are merged into master. 
+
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/release-drafter/release-drafter](https://github.com/release-drafter/release-drafter).
 
 ## Versions
