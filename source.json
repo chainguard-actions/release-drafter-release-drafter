@@ -1,4 +1,6 @@
 {
-  "upstream": "release-drafter/release-drafter",
-  "version": "v7.0.0"
+  "owner": "release-drafter",
+  "repo": "release-drafter",
+  "version": "",
+  "url": "https://github.com/release-drafter/release-drafter"
 }
