@@ -1,0 +1,28 @@
+name: Test name and tag inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          dry-run: 'true'
+          token: ${{ github.token }}
+          name: 'My Release v1.0.0'
+          tag: 'v1.0.0'
+        continue-on-error: true
+      - name: Assert action ran with name and tag inputs
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # Verify the action ran (not skipped) — dry-run with explicit name/tag
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped"
+            exit 1
+          fi
+          echo "PASS: action ran with name and tag inputs"

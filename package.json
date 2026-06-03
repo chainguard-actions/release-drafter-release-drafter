@@ -1,0 +1,80 @@
+{
+  "name": "release-drafter",
+  "description": "Drafts your next release notes as pull requests are merged into your branch(es).",
+  "version": "7.3.1",
+  "author": "",
+  "type": "module",
+  "private": true,
+  "homepage": "https://github.com/release-drafter/release-drafter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/release-drafter/release-drafter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/release-drafter/release-drafter/issues"
+  },
+  "keywords": [
+    "actions",
+    "release",
+    "release-notes",
+    "release-automation"
+  ],
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.10.0"
+  },
+  "imports": {
+    "#src/*": "./src/*",
+    "#tests/*": "./src/tests/*"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "coverage": "node src/scripts/coverage-summary.ts",
+    "tsc:check": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "format:write": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "check": "biome check --write .",
+    "codegen": "graphql-codegen -c src/scripts/graphql.codegen-config.ts -v",
+    "schemas": "node src/scripts/json-schema.ts",
+    "all": "npm run check && npm run tsc:check && npm run test:run && npm run schemas && npm run build",
+    "check:clean": "node src/scripts/check-clean.ts",
+    "preversion": "npm run all && npm run check:clean",
+    "version": "git add package.json package-lock.json",
+    "postversion": "git push && git push origin v$npm_package_version"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@octokit/graphql": "^9.0.3",
+    "@octokit/plugin-rest-endpoint-methods": "^17.0.0",
+    "@octokit/request-error": "^7.1.0",
+    "@octokit/types": "^16.0.0",
+    "compare-versions": "^6.1.1",
+    "escape-string-regexp": "^5.0.0",
+    "graphql": "^16.14.0",
+    "ignore": "^7.0.5",
+    "regex-parser": "^2.3.1",
+    "semver": "^7.8.0",
+    "yaml": "^2.8.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.15",
+    "@graphql-codegen/cli": "^7.0.0",
+    "@graphql-codegen/near-operation-file-preset": "^5.2.1",
+    "@graphql-codegen/typed-document-node": "^7.0.0",
+    "@octokit/webhooks-types": "^7.6.1",
+    "@types/node": "^24.12.3",
+    "@types/semver": "^7.7.1",
+    "@vitest/coverage-v8": "^4.1.6",
+    "nock": "^14.0.15",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13",
+    "vitest": "^4.1.6"
+  }
+}
