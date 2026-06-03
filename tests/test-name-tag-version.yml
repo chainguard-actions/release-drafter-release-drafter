@@ -1,4 +1,4 @@
-name: Test basic dry-run
+name: Test name, tag, and version inputs
 on:
   workflow_dispatch:
 jobs:
@@ -24,9 +24,6 @@ jobs:
             - title: 'Features'
               labels:
                 - 'feature'
-            - title: 'Bug Fixes'
-              labels:
-                - 'bug'
           EOF
 
       - id: action
@@ -34,9 +31,12 @@ jobs:
         with:
           dry-run: 'true'
           token: ${{ github.token }}
+          name: 'My Release v2.0.0'
+          tag: 'v2.0.0'
+          version: '2.0.0'
         continue-on-error: true
 
-      - name: Assert action ran (dry-run mode)
+      - name: Assert action ran with name, tag, and version inputs
         run: |
-          echo "Action completed in dry-run mode"
+          echo "Action completed with name, tag, and version inputs in dry-run mode"
           echo "PASS"

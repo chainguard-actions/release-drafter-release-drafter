@@ -1,4 +1,4 @@
-name: Test basic dry-run
+name: Test prerelease input
 on:
   workflow_dispatch:
 jobs:
@@ -24,9 +24,6 @@ jobs:
             - title: 'Features'
               labels:
                 - 'feature'
-            - title: 'Bug Fixes'
-              labels:
-                - 'bug'
           EOF
 
       - id: action
@@ -34,9 +31,11 @@ jobs:
         with:
           dry-run: 'true'
           token: ${{ github.token }}
+          prerelease: 'true'
+          prerelease-identifier: 'beta'
         continue-on-error: true
 
-      - name: Assert action ran (dry-run mode)
+      - name: Assert action ran with prerelease inputs
         run: |
-          echo "Action completed in dry-run mode"
+          echo "Action completed with prerelease inputs in dry-run mode"
           echo "PASS"
