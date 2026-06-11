@@ -1,4 +1,4 @@
-name: Test basic dry-run
+name: Test with name input
 on:
   workflow_dispatch:
 jobs:
@@ -21,11 +21,6 @@ jobs:
               labels:
                 - 'feature'
                 - 'enhancement'
-            - title: '🐛 Bug Fixes'
-              labels:
-                - 'fix'
-                - 'bugfix'
-                - 'bug'
           change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
           template: |
             ## Changes
@@ -36,19 +31,18 @@ jobs:
       - id: action
         uses: .
         with:
+          name: 'My Custom Release Name'
           dry-run: 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Assert dry-run produces outputs
+      - name: Assert name output matches custom name
+        env:
+          ACTUAL: ${{ steps.action.outputs.name }}
         run: |
-          echo "id: ${{ steps.action.outputs.id }}"
-          echo "name: ${{ steps.action.outputs.name }}"
-          echo "tag_name: ${{ steps.action.outputs.tag_name }}"
-          echo "body: ${{ steps.action.outputs.body }}"
-          echo "html_url: ${{ steps.action.outputs.html_url }}"
-          echo "major_version: ${{ steps.action.outputs.major_version }}"
-          echo "minor_version: ${{ steps.action.outputs.minor_version }}"
-          echo "patch_version: ${{ steps.action.outputs.patch_version }}"
-          echo "resolved_version: ${{ steps.action.outputs.resolved_version }}"
-          echo "PASS: dry-run completed without error"
+          echo "actual name: $ACTUAL"
+          if [ "$ACTUAL" != "My Custom Release Name" ]; then
+            echo "FAIL: expected 'My Custom Release Name' but got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: name output matches custom name"
