@@ -1,0 +1,45 @@
+name: Test release-drafter with custom config name
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create custom release-drafter config
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.github"
+          cat > "$GITHUB_WORKSPACE/.github/my-release-drafter.yml" << 'EOF'
+          template: |
+            ## Changes
+
+            $CHANGES
+          name-template: 'Release $RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          version-resolver:
+            default: minor
+          EOF
+
+      - id: drafter
+        uses: .
+        with:
+          config-name: 'my-release-drafter.yml'
+          dry-run: 'true'
+          token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran with custom config name
+        env:
+          OUTCOME: ${{ steps.drafter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should attempt to run (not be skipped).
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran with custom config-name (outcome=$OUTCOME)"

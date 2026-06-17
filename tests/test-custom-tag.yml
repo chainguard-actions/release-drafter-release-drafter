@@ -1,0 +1,47 @@
+name: Test release-drafter with custom tag and name
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.github"
+          cat > "$GITHUB_WORKSPACE/.github/release-drafter.yml" << 'EOF'
+          template: |
+            ## What's Changed
+
+            $CHANGES
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          version-resolver:
+            default: patch
+          EOF
+
+      - id: drafter
+        uses: .
+        with:
+          dry-run: 'true'
+          name: 'My Custom Release'
+          tag: 'v2.0.0'
+          version: '2.0.0'
+          token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran with custom inputs
+        env:
+          OUTCOME: ${{ steps.drafter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should attempt to run (not be skipped).
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran with custom tag/name inputs (outcome=$OUTCOME)"

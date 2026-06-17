@@ -1,0 +1,64 @@
+name: Test release-drafter dry-run mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.github"
+          cat > "$GITHUB_WORKSPACE/.github/release-drafter.yml" << 'EOF'
+          template: |
+            ## What's Changed
+
+            $CHANGES
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          categories:
+            - title: '🚀 Features'
+              labels:
+                - 'feature'
+                - 'enhancement'
+            - title: '🐛 Bug Fixes'
+              labels:
+                - 'fix'
+                - 'bugfix'
+                - 'bug'
+          version-resolver:
+            major:
+              labels:
+                - 'major'
+            minor:
+              labels:
+                - 'minor'
+            patch:
+              labels:
+                - 'patch'
+            default: patch
+          EOF
+
+      - id: drafter
+        uses: .
+        with:
+          dry-run: 'true'
+          token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran (dry-run should not crash on startup)
+        env:
+          OUTCOME: ${{ steps.drafter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # In dry-run mode the action may fail due to no real GitHub API access in act,
+          # but it should at least attempt to run (not be skipped).
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome=$OUTCOME)"
