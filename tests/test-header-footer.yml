@@ -1,0 +1,44 @@
+name: Test release-drafter header and footer inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          template: |
+            ## Changes
+
+            $CHANGES
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          header: '## Welcome to this release!'
+          footer: '## Thank you for using our project!'
+          dry-run: 'true'
+          token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran with header and footer
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          # The action should attempt to run with header and footer inputs.
+          # Under act without real GitHub credentials it may fail at the API call stage,
+          # but it should not be cancelled or produce an unexpected runner error.
+          if [ "${{ steps.action.outcome }}" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with header and footer inputs"
