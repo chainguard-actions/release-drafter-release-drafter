@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build:
+    if: github.repository == 'release-drafter/release-drafter'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run all checks and rebuild artifacts
+        run: npm run all
+
+      - name: Check for clean working directory
+        run: npm run check:clean
+
+      - name: Publish
+        if: false # Publishing is currently disabled, see https://github.com/release-drafter/release-drafter/pull/1475#discussion_r2901869066
+        run: npm publish # Publishes to npmjs, using package.json's version
+
+      - name: Parse pushed tag version
+        id: version
+        run: |
+          tag=${GITHUB_REF/refs\/tags\//}
+          version=${tag#v}
+          major=${version%%.*}
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "major=${major}" >> $GITHUB_OUTPUT
+
+      - name: Publish Release
+        uses: ./
+        with:
+          version: ${{ steps.version.outputs.version }}
+          publish: true
+
+      - name: Update major tag
+        env:
+          MAJOR: ${{ steps.version.outputs.major }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git tag "v${MAJOR}" "${TAG}" -f
+          git push origin "refs/tags/v${MAJOR}" -f

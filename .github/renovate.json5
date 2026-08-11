@@ -1,0 +1,75 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^biome\\.jsonc$"],
+      "matchStrings": ["biomejs\\.dev/schemas/(?<currentValue>[^/]+)"],
+      "depNameTemplate": "@biomejs/biome",
+      "datasourceTemplate": "npm",
+    },
+  ],
+  "dependencyDashboard": false,
+  // Renovate docs: this makes PR titles conventional, e.g. chore(deps): update eslint to v7.30.0.
+  // Release Drafter categorizes Renovate PRs from those titles, not from the labels below.
+  "semanticCommits": "enabled",
+  "labels": ["type: dependencies"],
+  "rangeStrategy": "bump",
+  "constraints": {
+    "npm": "^12.0.1",
+  },
+  "commitMessageExtra": "to {{newVersion}}",
+  "schedule": ["every weekend"],
+  // Mirror .npmrc min-release-age.
+  "minimumReleaseAge": "7 days",
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      // Keep Actions updates out of chore(deps); Release Drafter treats ci(deps) as a dependency update.
+      "semanticCommitType": "ci",
+      "labels": ["type: maintenance"],
+    },
+    {
+      "matchCategories": ["security"],
+      "labels": ["type: security"],
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "labels": ["type: maintenance"],
+    },
+    {
+      "matchPackageNames": ["@biomejs/biome"],
+      "groupName": "biome",
+    },
+    {
+      "matchPackageNames": ["vitest", "@vitest/*"],
+      "groupName": "vitest",
+    },
+    {
+      "matchPackageNames": ["@graphql-codegen/*"],
+      "groupName": "graphql-codegen",
+    },
+    {
+      "matchPackageNames": ["vite", "vite-*"],
+      "groupName": "vite",
+    },
+    {
+      "matchPackageNames": ["@actions/*"],
+      "groupName": "actions",
+    },
+    {
+      "matchPackageNames": ["@types/*"],
+      "groupName": "types",
+    },
+    {
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<25",
+      "groupName": "types",
+    },
+    {
+      "matchDepTypes": ["engines"],
+      "enabled": false,
+    },
+  ],
+}

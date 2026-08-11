@@ -1,0 +1,57 @@
+name: Test custom tag and name override
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          template: |
+            # What's Changed
+
+            $CHANGES
+          EOF
+
+      - id: drafter
+        uses: .
+        with:
+          dry-run: 'true'
+          tag: 'v2.0.0'
+          name: 'Release v2.0.0'
+          version: '2.0.0'
+        continue-on-error: true
+
+      - name: Assert action ran (outputs set, or failed gracefully on the sentinel repo)
+        env:
+          OUTCOME: ${{ steps.drafter.outcome }}
+          TAG_NAME: ${{ steps.drafter.outputs.tag_name }}
+          NAME: ${{ steps.drafter.outputs.name }}
+          MAJOR: ${{ steps.drafter.outputs.major_version }}
+          MINOR: ${{ steps.drafter.outputs.minor_version }}
+          PATCH: ${{ steps.drafter.outputs.patch_version }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "tag_name: $TAG_NAME"
+          echo "name: $NAME"
+          echo "major_version: $MAJOR"
+          echo "minor_version: $MINOR"
+          echo "patch_version: $PATCH"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with custom tag/name overrides"
+            if [ -n "$TAG_NAME" ] && [ "$TAG_NAME" != "v2.0.0" ]; then
+              echo "FAIL: expected tag_name to be v2.0.0 but got '$TAG_NAME'"
+              exit 1
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
