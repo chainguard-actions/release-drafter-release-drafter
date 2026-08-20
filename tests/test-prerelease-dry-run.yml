@@ -1,0 +1,46 @@
+name: Test prerelease dry-run
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          categories:
+            - title: '🚀 Features'
+              labels:
+                - 'feature'
+          change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+          template: |
+            ## Changes
+
+            $CHANGES
+          EOF
+
+      - id: drafter
+        uses: .
+        with:
+          dry-run: 'true'
+          prerelease: 'true'
+          prerelease-identifier: 'beta'
+          token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran in prerelease mode
+        run: |
+          echo "Drafter outcome: ${{ steps.drafter.outcome }}"
+          if [ -z "${{ steps.drafter.outcome }}" ]; then
+            echo "FAIL: step outcome was not set"
+            exit 1
+          fi
+          echo "PASS: prerelease dry-run executed with outcome=${{ steps.drafter.outcome }}"

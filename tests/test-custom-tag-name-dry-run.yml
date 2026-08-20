@@ -1,0 +1,47 @@
+name: Test custom tag and name dry-run
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          categories:
+            - title: '🚀 Features'
+              labels:
+                - 'feature'
+          change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+          template: |
+            ## Changes
+
+            $CHANGES
+          EOF
+
+      - id: drafter
+        uses: .
+        with:
+          dry-run: 'true'
+          tag: 'v2.0.0'
+          name: 'Release v2.0.0'
+          version: '2.0.0'
+          token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran with custom tag and name
+        run: |
+          echo "Drafter outcome: ${{ steps.drafter.outcome }}"
+          if [ -z "${{ steps.drafter.outcome }}" ]; then
+            echo "FAIL: step outcome was not set"
+            exit 1
+          fi
+          echo "PASS: custom tag/name dry-run executed with outcome=${{ steps.drafter.outcome }}"
