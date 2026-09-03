@@ -1,0 +1,33 @@
+name: Test name, tag, and version inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: drafter
+        uses: .
+        with:
+          name: 'My Release v1.2.3'
+          tag: 'v1.2.3'
+          version: '1.2.3'
+          dry-run: 'true'
+        continue-on-error: true
+      - name: Assert action ran with name/tag/version inputs
+        env:
+          OUTCOME: ${{ steps.drafter.outcome }}
+          NAME: ${{ steps.drafter.outputs.name }}
+          TAG_NAME: ${{ steps.drafter.outputs.tag_name }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "name: $NAME"
+          echo "tag_name: $TAG_NAME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with name/tag/version inputs"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

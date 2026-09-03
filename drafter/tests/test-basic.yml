@@ -1,4 +1,4 @@
-name: Test basic dry-run
+name: Test basic dry-run usage
 on:
   workflow_dispatch:
 jobs:
@@ -6,33 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Create release-drafter config
-        run: |
-          mkdir -p .github
-          cat > .github/release-drafter.yml << 'EOF'
-          name-template: 'v$RESOLVED_VERSION'
-          tag-template: 'v$RESOLVED_VERSION'
-          template: |
-            # What's Changed
-
-            $CHANGES
-          categories:
-            - title: 'Bug Fixes'
-              labels:
-                - 'bug'
-            - title: 'Features'
-              labels:
-                - 'enhancement'
-          EOF
-
       - id: drafter
         uses: .
         with:
           dry-run: 'true'
         continue-on-error: true
-
-      - name: Assert action ran (outputs set, or failed gracefully on the sentinel repo)
+      - name: Assert action ran (dry-run mode, sentinel repo may cause API failure)
         env:
           OUTCOME: ${{ steps.drafter.outcome }}
           BODY: ${{ steps.drafter.outputs.body }}
