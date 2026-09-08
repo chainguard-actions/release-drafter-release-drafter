@@ -6,23 +6,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: drafter
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION 🌈'
+          tag-template: 'v$RESOLVED_VERSION'
+          categories:
+            - title: '🚀 Features'
+              labels:
+                - 'feature'
+                - 'enhancement'
+            - title: '🐛 Bug Fixes'
+              labels:
+                - 'fix'
+                - 'bugfix'
+                - 'bug'
+          change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+          template: |
+            ## Changes
+            $CHANGES
+          EOF
+
+      - id: action
         uses: .
+        continue-on-error: true
         with:
           name: 'My Release v1.2.3'
           tag: 'v1.2.3'
           version: '1.2.3'
           dry-run: 'true'
-        continue-on-error: true
+
       - name: Assert action ran with name/tag/version inputs
         env:
-          OUTCOME: ${{ steps.drafter.outcome }}
-          NAME: ${{ steps.drafter.outputs.name }}
-          TAG_NAME: ${{ steps.drafter.outputs.tag_name }}
+          OUTCOME: ${{ steps.action.outcome }}
+          NAME: ${{ steps.action.outputs.name }}
+          TAG: ${{ steps.action.outputs.tag_name }}
         run: |
           echo "outcome: $OUTCOME"
           echo "name: $NAME"
-          echo "tag_name: $TAG_NAME"
+          echo "tag_name: $TAG"
           if [ "$OUTCOME" = "success" ]; then
             echo "PASS: action succeeded with name/tag/version inputs"
           elif [ "$OUTCOME" = "failure" ]; then
