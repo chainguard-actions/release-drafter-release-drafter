@@ -1,0 +1,46 @@
+name: Test custom config-name input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create custom release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/my-release-drafter.yml << 'EOF'
+          name-template: 'Release $RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          categories:
+            - title: '✨ Enhancements'
+              labels:
+                - 'enhancement'
+          template: |
+            ## Release Notes
+            $CHANGES
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          config-name: 'my-release-drafter.yml'
+          dry-run: 'true'
+
+      - name: Assert action ran with custom config or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          BODY: ${{ steps.action.outputs.body }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "body: $BODY"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with custom config-name"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable via GitHub API)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

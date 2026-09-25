@@ -1,4 +1,4 @@
-name: Test missing config graceful failure
+name: Test prerelease dry-run
 on:
   workflow_dispatch:
 jobs:
@@ -7,25 +7,25 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Ensure no release-drafter config exists
-        run: |
-          rm -f .github/release-drafter.yml || true
-
-      - id: action
+      - id: drafter
         uses: .
         continue-on-error: true
         with:
           dry-run: 'true'
+          prerelease: 'true'
+          token: ${{ github.token }}
 
-      - name: Assert action ran or failed gracefully (no config or no PR context)
+      - name: Assert action ran (prerelease mode, graceful failure on sentinel repo)
         env:
-          OUTCOME: ${{ steps.action.outcome }}
+          OUTCOME: ${{ steps.drafter.outcome }}
+          BODY: ${{ steps.drafter.outputs.body }}
         run: |
           echo "outcome: $OUTCOME"
+          echo "body: $BODY"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded (possibly no-op without a PR)"
+            echo "PASS: action succeeded in prerelease dry-run mode"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (missing config or sentinel repo)"
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

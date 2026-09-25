@@ -1,4 +1,4 @@
-name: Test custom config-name
+name: Test basic usage (dry-run)
 on:
   workflow_dispatch:
 jobs:
@@ -7,35 +7,35 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create custom release-drafter config
+      - name: Create release-drafter config
         run: |
           mkdir -p .github
-          cat > .github/my-autolabeler.yml << 'EOF'
+          cat > .github/release-drafter.yml << 'EOF'
           autolabeler:
-            - label: 'documentation'
+            - label: 'feature'
               title:
-                - '/docs/i'
-            - label: 'chore'
+                - '/feat/i'
+            - label: 'bug'
               title:
-                - '/chore/i'
+                - '/fix/i'
           EOF
 
       - id: action
         uses: .
         continue-on-error: true
         with:
-          config-name: 'my-autolabeler.yml'
+          token: ${{ github.token }}
           dry-run: 'true'
 
-      - name: Assert action ran with custom config (sentinel repo may cause graceful failure)
+      - name: Assert action ran or failed gracefully on sentinel repo
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded with custom config in dry-run mode"
+            echo "PASS: action succeeded"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (sentinel repo or no PR context)"
+            echo "PASS: action failed gracefully (expected on sentinel repo)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

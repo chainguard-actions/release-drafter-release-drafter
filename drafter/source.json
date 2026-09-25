@@ -2,7 +2,7 @@
   "owner": "release-drafter",
   "repo": "release-drafter",
   "version": "v7.0.0",
-  "path": "autolabeler",
+  "path": "drafter",
   "commit_sha": "3a7fb5c85b80b1dda66e1ccb94009adbbd32fce3",
   "url": "https://github.com/release-drafter/release-drafter",
   "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",

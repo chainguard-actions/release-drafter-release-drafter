@@ -9,7 +9,7 @@ branding:
 runs:
   pre: chainguard-phonehome.js
   using: node24
-  main: ../dist/actions/drafter/run.js
+  main: dist/actions/drafter/run.js
 
 inputs:
   config-name:

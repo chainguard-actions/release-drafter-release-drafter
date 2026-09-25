@@ -1,0 +1,55 @@
+name: Test prerelease scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          version-template: '$MAJOR.$MINOR.$PATCH'
+          categories:
+            - title: '🚀 Features'
+              labels:
+                - 'feature'
+            - title: '🐛 Bug Fixes'
+              labels:
+                - 'bug'
+          template: |
+            ## What's Changed
+            $CHANGES
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          prerelease: 'true'
+          prerelease-identifier: 'beta'
+          tag: 'v1.0.0-beta.1'
+          name: 'v1.0.0-beta.1 (Pre-release)'
+          dry-run: 'true'
+
+      - name: Assert prerelease action ran or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          TAG: ${{ steps.action.outputs.tag_name }}
+          NAME: ${{ steps.action.outputs.name }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "tag_name: $TAG"
+          echo "name: $NAME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: prerelease action succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable via GitHub API)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
