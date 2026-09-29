@@ -2,6 +2,7 @@
   "owner": "release-drafter",
   "repo": "release-drafter",
   "version": "v7.7.0",
+  "path": "drafter",
   "commit_sha": "34d80673e067bdc0c24568d3af899c216adcfaa9",
   "url": "https://github.com/release-drafter/release-drafter",
   "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",

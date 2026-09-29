@@ -1,4 +1,4 @@
-name: Test basic dry-run
+name: Test version override inputs
 on:
   workflow_dispatch:
 jobs:
@@ -16,28 +16,27 @@ jobs:
         uses: .
         with:
           dry-run: 'true'
+          name: 'v2.0.0 Test Release'
+          tag: 'v2.0.0'
+          version: '2.0.0'
         continue-on-error: true
 
-      - name: Assert action ran (dry-run, sentinel repo may cause graceful failure)
+      - name: Assert version override dry-run ran
         env:
           OUTCOME: ${{ steps.drafter.outcome }}
-          BODY: ${{ steps.drafter.outputs.body }}
+          NAME: ${{ steps.drafter.outputs.name }}
           TAG_NAME: ${{ steps.drafter.outputs.tag_name }}
-          MAJOR: ${{ steps.drafter.outputs.major_version }}
-          MINOR: ${{ steps.drafter.outputs.minor_version }}
-          PATCH: ${{ steps.drafter.outputs.patch_version }}
+          RESOLVED: ${{ steps.drafter.outputs.resolved_version }}
         run: |
           echo "outcome: $OUTCOME"
-          echo "body: $BODY"
+          echo "name: $NAME"
           echo "tag_name: $TAG_NAME"
-          echo "major_version: $MAJOR"
-          echo "minor_version: $MINOR"
-          echo "patch_version: $PATCH"
+          echo "resolved_version: $RESOLVED"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded in dry-run mode"
-            # In dry-run mode, version outputs should be set
-            if [ -z "$MAJOR" ] && [ -z "$MINOR" ] && [ -z "$PATCH" ]; then
-              echo "WARN: all version outputs are empty (may be expected with no prior releases)"
+            echo "PASS: action succeeded with version overrides in dry-run mode"
+            # When version is overridden, the outputs should reflect the override
+            if [ -n "$TAG_NAME" ] && [ "$TAG_NAME" != "v2.0.0" ]; then
+              echo "WARN: tag_name '$TAG_NAME' does not match override 'v2.0.0'"
             fi
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
