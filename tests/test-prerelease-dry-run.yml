@@ -1,4 +1,4 @@
-name: Test custom config-name
+name: Test prerelease dry-run
 on:
   workflow_dispatch:
 jobs:
@@ -7,14 +7,14 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create custom release-drafter config
+      - name: Create release-drafter config
         run: |
           mkdir -p .github
-          cat > .github/my-release-drafter.yml << 'EOF'
-          name-template: 'v$RESOLVED_VERSION'
-          tag-template: 'v$RESOLVED_VERSION'
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION-beta'
+          tag-template: 'v$RESOLVED_VERSION-beta'
           template: |
-            # Custom Config Release
+            # Pre-release Changes
 
             $CHANGES
           categories:
@@ -28,10 +28,11 @@ jobs:
         uses: .
         with:
           dry-run: 'true'
-          config-name: 'my-release-drafter.yml'
+          prerelease: 'true'
+          prerelease-identifier: 'beta'
         continue-on-error: true
 
-      - name: Assert action ran with custom config (or failed gracefully on sentinel repo)
+      - name: Assert action ran (prerelease dry-run or failed gracefully on sentinel repo)
         env:
           OUTCOME: ${{ steps.drafter.outcome }}
           BODY: ${{ steps.drafter.outputs.body }}
@@ -39,7 +40,7 @@ jobs:
           echo "outcome: $OUTCOME"
           echo "body: $BODY"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded with custom config-name in dry-run mode"
+            echo "PASS: action succeeded in prerelease dry-run mode"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action failed gracefully (sentinel repo is not resolvable via GitHub API)"
           else
