@@ -1,0 +1,100 @@
+{
+  "name": "@release-drafter/root",
+  "description": "Private workspace coordinator for Release Drafter.",
+  "version": "7.8.0",
+  "author": "",
+  "type": "module",
+  "private": true,
+  "homepage": "https://github.com/release-drafter/release-drafter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/release-drafter/release-drafter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/release-drafter/release-drafter/issues"
+  },
+  "keywords": [
+    "actions",
+    "release",
+    "release-notes",
+    "release-automation"
+  ],
+  "engines": {
+    "node": "^24.11.0 || >=26.0.0",
+    "npm": ">=12.0.1"
+  },
+  "imports": {
+    "#gh-actions/*": "./packages/gh-actions/src/*",
+    "#src/*": "./src/*",
+    "#tests/*": "./src/tests/*"
+  },
+  "scripts": {
+    "build": "npm run build:actions && npm run build:workspaces",
+    "build:actions": "vite build",
+    "build:workspaces": "npm run build --workspaces --if-present",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:package-readiness": "npm run build --workspace release-drafter && vitest run src/tests/tooling/release-drafter-package.test.ts --coverage.enabled=false && npm run check:package-readiness",
+    "test:conformance:gitea": "FORGE_CONFORMANCE_TARGET=gitea vitest run --config vitest.forge.config.ts",
+    "test:conformance:forgejo": "FORGE_CONFORMANCE_TARGET=forgejo vitest run --config vitest.forge.config.ts",
+    "test:conformance:gitea-forgejo": "vitest run --config vitest.forge.config.ts",
+    "test:conformance:gitlab": "vitest run --config vitest.gitlab.config.ts",
+    "coverage": "node src/scripts/coverage-summary.ts",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "format:docs": "prettier --write \"**/*.md\"",
+    "format:docs:check": "prettier --check \"**/*.md\"",
+    "lint": "biome lint .",
+    "lint:fix": "biome check --write .",
+    "generate:action-metadata": "node src/scripts/action-metadata.ts",
+    "generate:graphql": "graphql-codegen -c src/scripts/graphql.codegen-config.ts -v",
+    "generate:schemas": "npm run build:workspaces && node src/scripts/json-schema.ts",
+    "check:dependencies": "KNIP_DISABLE_RAW_TRANSFER=1 knip --config knip.jsonc --no-progress",
+    "check:boundaries": "dependency-cruiser --config .dependency-cruiser.mjs packages",
+    "check:packages": "node src/scripts/guard-packages.ts",
+    "check:package-readiness": "node src/scripts/check-package-readiness.ts",
+    "check:package-boundaries": "node src/scripts/guard-boundaries.ts",
+    "check:workspaces": "npm run check:dependencies && npm run check:boundaries && npm run check:packages && npm run check:package-boundaries",
+    "ci": "npm run generate:action-metadata && npm run lint:fix && npm run format:docs && npm run typecheck && npm run test:run && npm run generate:schemas && npm run build:actions && npm run check:workspaces",
+    "check:clean": "node src/scripts/check-clean.ts",
+    "preversion": "npm run ci && npm run check:clean",
+    "version": "node src/scripts/sync-workspace-versions.ts && npm install --package-lock-only --ignore-scripts && git add package.json package-lock.json packages/*/package.json",
+    "postversion": "git push && git push origin v$npm_package_version"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
+    "@release-drafter/autolabeler": "*",
+    "@release-drafter/core": "*",
+    "@release-drafter/gh-actions": "*",
+    "@release-drafter/github-adapter": "*",
+    "graphql": "^17.0.2",
+    "release-drafter": "*",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@graphql-codegen/cli": "^7.4.3",
+    "@graphql-codegen/typed-document-node": "^7.1.0",
+    "@graphql-codegen/typescript": "^6.1.0",
+    "@graphql-codegen/typescript-operations": "^6.1.7",
+    "@swc/core": "1.16.2",
+    "@types/node": "^24.13.6",
+    "@vitest/coverage-v8": "^5.0.1",
+    "dependency-cruiser": "18.4.0",
+    "knip": "6.38.0",
+    "nock": "^14.0.17",
+    "prettier": "^3.9.9",
+    "rolldown-plugin-dts": "^0.28.6",
+    "testcontainers": "12.1.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.1"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

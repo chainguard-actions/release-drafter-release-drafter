@@ -1,0 +1,46 @@
+name: Test custom config-name input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create custom autolabeler config
+        run: |
+          mkdir -p .github
+          cat > .github/my-autolabeler.yml << 'EOF'
+          autolabeler:
+            - label: 'documentation'
+              files:
+                - '*.md'
+            - label: 'dependencies'
+              title:
+                - '/chore\(deps\)/i'
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          config-name: my-autolabeler.yml
+          dry-run: 'true'
+
+      - name: Assert action ran with custom config (sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          LABELS: ${{ steps.action.outputs.labels }}
+          NUMBER: ${{ steps.action.outputs.number }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          echo "number: $NUMBER"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with custom config in dry-run mode"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

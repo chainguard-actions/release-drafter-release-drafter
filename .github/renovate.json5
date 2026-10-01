@@ -1,0 +1,127 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^biome\\.jsonc$"],
+      "matchStrings": ["biomejs\\.dev/schemas/(?<currentValue>[^/]+)"],
+      "depNameTemplate": "@biomejs/biome",
+      "datasourceTemplate": "npm",
+    },
+  ],
+  "dependencyDashboard": false,
+  "prHourlyLimit": 0,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  // GitHub must require passing CI checks on main before platform automerge is enabled.
+  "platformAutomerge": true,
+  "ignoreTests": false,
+  // Renovate docs: this makes PR titles conventional, e.g. chore(deps): update eslint to v7.30.0.
+  // Release Drafter categorizes Renovate PRs from those titles, not from the labels below.
+  "semanticCommits": "enabled",
+  "labels": ["type: dependencies"],
+  "rangeStrategy": "bump",
+  "constraints": {
+    "npm": "^12.1.0",
+  },
+  "commitMessageExtra": "to {{newVersion}}",
+  // Mirror .npmrc min-release-age.
+  "minimumReleaseAge": "7 days",
+  // Mend allowlisted these commands for the Community (OSS) plan.
+  "postUpgradeTasks": {
+    "commands": ["npm ci", "npm run ci"],
+    "executionMode": "branch",
+    "installTools": {
+      "node": {},
+      "npm": {},
+    },
+    "fileFilters": [
+      "dist/**",
+      "schema.json",
+      "autolabeler/schema.json",
+      "drafter/schema.json",
+    ],
+  },
+  // Refresh transitive dependencies even when direct dependencies have no updates.
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "extends": ["schedule:monthly"],
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": true,
+    "labels": ["type: security"],
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+    },
+    {
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchConfidence": ["high", "very high"],
+      // Prefer well-tested updates in the PR queue without suppressing other updates.
+      "prPriority": 1,
+    },
+    {
+      "matchManagers": ["renovate-config"],
+      "matchDepTypes": ["tool-constraint"],
+      "matchDepNames": ["npm"],
+      // Allow time for npm releases to reach the bundled Node.js runtimes.
+      "minimumReleaseAge": "90 days",
+    },
+    {
+      "matchManagers": ["github-actions"],
+      // Keep Actions updates out of chore(deps); Release Drafter treats ci(deps) as a dependency update.
+      "semanticCommitType": "ci",
+      "labels": ["type: maintenance"],
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "labels": ["type: maintenance"],
+    },
+    {
+      "matchPackageNames": ["@biomejs/biome"],
+      "groupName": "biome",
+    },
+    {
+      "matchPackageNames": ["vitest", "@vitest/*"],
+      "groupName": "vitest",
+    },
+    {
+      "matchPackageNames": ["@graphql-codegen/*"],
+      "groupName": "graphql-codegen",
+    },
+    {
+      "matchPackageNames": ["vite", "vite-*"],
+      "groupName": "vite",
+    },
+    {
+      "matchPackageNames": ["@actions/*"],
+      "groupName": "actions",
+    },
+    {
+      "matchPackageNames": ["undici"],
+      "matchDepTypes": ["dependencies"],
+      // Share Undici 6 with the Actions toolkit and retain patched v6 updates.
+      // Revisit when the toolkit changes major or before v6 support ends on 2027-04-30.
+      "allowedVersions": "^6.28.1",
+    },
+    {
+      "matchPackageNames": ["@types/*"],
+      "groupName": "types",
+    },
+    {
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<25",
+      "groupName": "types",
+    },
+    {
+      "matchDepTypes": ["engines"],
+      "enabled": false,
+    },
+  ],
+}

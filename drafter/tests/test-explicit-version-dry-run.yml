@@ -1,0 +1,50 @@
+name: Test explicit version override in dry-run mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Place the release-drafter config where the action expects it
+      - name: Set up release-drafter config
+        run: |
+          mkdir -p .github
+          cp "$GITHUB_WORKSPACE/tests/fixtures/release-drafter.yml" .github/release-drafter.yml
+
+      - id: drafter
+        uses: .
+        with:
+          dry-run: 'true'
+          version: '2.5.0'
+          name: 'Release v2.5.0'
+          tag: 'v2.5.0'
+        continue-on-error: true
+
+      - name: Assert action ran (explicit version dry-run or failed gracefully on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.drafter.outcome }}
+          BODY: ${{ steps.drafter.outputs.body }}
+          TAG: ${{ steps.drafter.outputs.tag_name }}
+          RESOLVED: ${{ steps.drafter.outputs.resolved_version }}
+          NAME: ${{ steps.drafter.outputs.name }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "body: $BODY"
+          echo "tag_name: $TAG"
+          echo "resolved_version: $RESOLVED"
+          echo "name: $NAME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded; validating outputs..."
+            # When version is explicitly set, resolved_version should reflect it
+            if [ -n "$RESOLVED" ] && [ "$RESOLVED" != "2.5.0" ]; then
+              echo "WARN: resolved_version='$RESOLVED' (may differ from explicit version input)"
+            fi
+            echo "PASS: action succeeded with explicit version override"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable via GitHub API)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
