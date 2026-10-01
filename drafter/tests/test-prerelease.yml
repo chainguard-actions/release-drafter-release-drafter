@@ -1,4 +1,4 @@
-name: Test release-drafter prerelease mode
+name: Test prerelease dry-run
 on:
   workflow_dispatch:
 jobs:
@@ -7,42 +7,39 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create release-drafter config with prerelease support
+      - name: Create release-drafter config
         run: |
           mkdir -p .github
           cat > .github/release-drafter.yml << 'EOF'
           name-template: 'v$RESOLVED_VERSION'
           tag-template: 'v$RESOLVED_VERSION'
+          version-template: '$MAJOR.$MINOR.$PATCH'
+          categories:
+            - title: '🚀 Features'
+              labels:
+                - 'feature'
+          change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
           template: |
-            # What's Changed
+            ## Changes
 
             $CHANGES
-          categories:
-            - title: 'Bug Fixes'
-              semver-increment: 'patch'
-              when:
-                label: 'bug'
-            - title: 'Features'
-              semver-increment: 'minor'
-              when:
-                label: 'enhancement'
           EOF
 
       - id: drafter
         uses: .
         with:
+          dry-run: 'true'
           prerelease: 'true'
           prerelease-identifier: 'beta'
-          dry-run: 'true'
         continue-on-error: true
 
-      - name: Assert prerelease action ran (or failed gracefully on sentinel repo)
+      - name: Assert prerelease action ran or failed gracefully
         env:
           OUTCOME: ${{ steps.drafter.outcome }}
-          RESOLVED_VERSION: ${{ steps.drafter.outputs.resolved_version }}
+          BODY: ${{ steps.drafter.outputs.body }}
         run: |
           echo "outcome: $OUTCOME"
-          echo "resolved_version: $RESOLVED_VERSION"
+          echo "body: $BODY"
           if [ "$OUTCOME" = "success" ]; then
             echo "PASS: action succeeded in prerelease dry-run mode"
           elif [ "$OUTCOME" = "failure" ]; then

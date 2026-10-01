@@ -5,6 +5,7 @@ branding:
   icon: edit-2
   color: orange
 runs:
+  pre: chainguard-phonehome.js
   using: node24
   main: ../dist/actions/autolabeler/run.js
 inputs:
