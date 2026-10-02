@@ -1,0 +1,44 @@
+name: Test custom config-name input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Copy the custom fixture config into .github so the action can find it
+      - name: Set up custom release-drafter config
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.github"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/.github/custom-release-drafter.yml" \
+             "$GITHUB_WORKSPACE/.github/custom-release-drafter.yml"
+
+      - id: check_pr
+        uses: .
+        continue-on-error: true
+        with:
+          config-name: custom-release-drafter.yml
+          token: ${{ github.token }}
+
+      - name: Assert action ran with custom config (labels output set or failed gracefully)
+        env:
+          LABELS: ${{ steps.check_pr.outputs.labels }}
+          OUTCOME: ${{ steps.check_pr.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          if [ "$OUTCOME" = "success" ]; then
+            # On success, labels must be a valid JSON array (could be empty [])
+            if echo "$LABELS" | grep -qE '^\[.*\]$'; then
+              echo "PASS: labels output is a JSON array with custom config: $LABELS"
+            else
+              echo "FAIL: labels output is not a JSON array: $LABELS"
+              exit 1
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable or no PR context)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

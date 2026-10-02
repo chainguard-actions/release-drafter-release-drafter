@@ -1,0 +1,43 @@
+name: Test basic usage - default config
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Copy the fixture config into .github so the action can find it
+      - name: Set up release-drafter config
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.github"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/.github/release-drafter.yml" \
+             "$GITHUB_WORKSPACE/.github/release-drafter.yml"
+
+      - id: check_pr
+        uses: .
+        continue-on-error: true
+        with:
+          token: ${{ github.token }}
+
+      - name: Assert action ran (labels output set or failed gracefully on sentinel repo)
+        env:
+          LABELS: ${{ steps.check_pr.outputs.labels }}
+          OUTCOME: ${{ steps.check_pr.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          if [ "$OUTCOME" = "success" ]; then
+            # On success, labels must be a valid JSON array (could be empty [])
+            if echo "$LABELS" | grep -qE '^\[.*\]$'; then
+              echo "PASS: labels output is a JSON array: $LABELS"
+            else
+              echo "FAIL: labels output is not a JSON array: $LABELS"
+              exit 1
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable or no PR context)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

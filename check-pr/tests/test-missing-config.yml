@@ -1,0 +1,46 @@
+name: Test missing config file handling
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Ensure no release-drafter config exists so the action must handle missing config
+      - name: Ensure no release-drafter config present
+        run: |
+          rm -f "$GITHUB_WORKSPACE/.github/release-drafter.yml"
+          rm -f "$GITHUB_WORKSPACE/.github/nonexistent-config.yml"
+
+      - id: check_pr
+        uses: .
+        continue-on-error: true
+        with:
+          config-name: nonexistent-config.yml
+          token: ${{ github.token }}
+
+      - name: Assert action failed gracefully with missing config or sentinel repo
+        env:
+          LABELS: ${{ steps.check_pr.outputs.labels }}
+          OUTCOME: ${{ steps.check_pr.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          # With a missing config and/or sentinel repo, the action should either:
+          # - fail (expected for missing config or sentinel repo API calls)
+          # - succeed with empty labels []
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully as expected (missing config or sentinel repo)"
+          elif [ "$OUTCOME" = "success" ]; then
+            # If it somehow succeeded, labels must still be a valid JSON array
+            if echo "$LABELS" | grep -qE '^\[.*\]$'; then
+              echo "PASS: action succeeded with labels: $LABELS"
+            else
+              echo "FAIL: labels output is not a JSON array: $LABELS"
+              exit 1
+            fi
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

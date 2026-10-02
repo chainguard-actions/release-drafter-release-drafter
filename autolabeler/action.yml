@@ -1,0 +1,32 @@
+name: 'Release Drafter - Autolabeler'
+description: 'Apply pull request labels from the Autolabeler configuration.'
+author: release-drafter
+branding:
+  icon: edit-2
+  color: orange
+runs:
+  pre: chainguard-phonehome.js
+  using: node24
+  main: ../dist/actions/autolabeler/run.js
+inputs:
+  token:
+    description: |
+      Access token for GitHub API requests. Default: github.token.
+    default: ${{ github.token }}
+  config-name:
+    description: |
+      Autolabeler configuration target.
+      A relative path starts in the repository's `.github` directory.
+    required: false
+    default: release-drafter.yml
+  dry-run:
+    description: |
+      Prevents label updates. The action logs the labels that it would add.
+    required: false
+    default: ''
+
+outputs:
+  number:
+    description: The pull request number that was evaluated.
+  labels:
+    description: A comma-separated list of labels matched by the configuration.

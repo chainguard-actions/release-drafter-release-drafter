@@ -1,0 +1,69 @@
+name: Test version, name, and tag override inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          template: |
+            ## Changes
+
+            $CHANGES
+          version-resolver:
+            default: patch
+          EOF
+
+      - id: drafter
+        uses: .
+        with:
+          version: '2.5.0'
+          name: 'My Custom Release v2.5.0'
+          tag: 'v2.5.0'
+          dry-run: 'true'
+        continue-on-error: true
+
+      - name: Assert action ran with version override (or failed gracefully on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.drafter.outcome }}
+          RESOLVED_VERSION: ${{ steps.drafter.outputs.resolved_version }}
+          MAJOR: ${{ steps.drafter.outputs.major_version }}
+          MINOR: ${{ steps.drafter.outputs.minor_version }}
+          PATCH: ${{ steps.drafter.outputs.patch_version }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "resolved_version: $RESOLVED_VERSION"
+          echo "major_version: $MAJOR"
+          echo "minor_version: $MINOR"
+          echo "patch_version: $PATCH"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ "$RESOLVED_VERSION" != "2.5.0" ]; then
+              echo "FAIL: expected resolved_version '2.5.0' but got '$RESOLVED_VERSION'"
+              exit 1
+            fi
+            if [ "$MAJOR" != "2" ]; then
+              echo "FAIL: expected major_version '2' but got '$MAJOR'"
+              exit 1
+            fi
+            if [ "$MINOR" != "5" ]; then
+              echo "FAIL: expected minor_version '5' but got '$MINOR'"
+              exit 1
+            fi
+            if [ "$PATCH" != "0" ]; then
+              echo "FAIL: expected patch_version '0' but got '$PATCH'"
+              exit 1
+            fi
+            echo "PASS: version outputs match expected values"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

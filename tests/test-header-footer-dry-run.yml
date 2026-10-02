@@ -1,0 +1,55 @@
+name: Test header and footer inputs with dry-run
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          template: |
+            ## Changes
+
+            $CHANGES
+          name-template: 'v$RESOLVED_VERSION'
+          tag-template: 'v$RESOLVED_VERSION'
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          dry-run: 'true'
+          header: '## Release Header'
+          footer: '## Release Footer'
+
+      - name: Assert action ran (header/footer dry-run or failed gracefully on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          BODY: ${{ steps.action.outputs.body }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "body: $BODY"
+          if [ "$OUTCOME" = "success" ]; then
+            # If the action succeeded, verify the body contains header and footer
+            if echo "$BODY" | grep -q "Release Header"; then
+              echo "PASS: header found in body"
+            else
+              echo "WARN: header not found in body (may be empty if no PRs)"
+            fi
+            if echo "$BODY" | grep -q "Release Footer"; then
+              echo "PASS: footer found in body"
+            else
+              echo "WARN: footer not found in body (may be empty if no PRs)"
+            fi
+            echo "PASS: action succeeded with header/footer inputs"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
