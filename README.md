@@ -17,6 +17,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v7.6.0 | [`v7.6.0`](https://github.com/chainguard-actions/release-drafter-release-drafter/tree/v7.6.0) | [`eada3c9`](https://github.com/release-drafter/release-drafter/commit/eada3c96a64734dd381cfbda23511034e328ddb0) |
 | v7.7.0 | [`v7.7.0`](https://github.com/chainguard-actions/release-drafter-release-drafter/tree/v7.7.0) | [`34d8067`](https://github.com/release-drafter/release-drafter/commit/34d80673e067bdc0c24568d3af899c216adcfaa9) |
 | v7.8.0 | [`v7.8.0`](https://github.com/chainguard-actions/release-drafter-release-drafter/tree/v7.8.0) | [`c345907`](https://github.com/release-drafter/release-drafter/commit/c345907820e0396f6f44bcfd9ac4763325f8feb0) |
+| v7.9.0 | [`v7.9.0`](https://github.com/chainguard-actions/release-drafter-release-drafter/tree/v7.9.0) | [`72967cd`](https://github.com/release-drafter/release-drafter/commit/72967cdc98ddd3160f1fc3dff619de365e137dd0) |
 
 ## Privacy
 
