@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-# Hardening Report: release-drafter--release-drafter/v7.3.1
+# Hardening Report: release-drafter--release-drafter--autolabeler/v7.3.1
 
 > This file was generated automatically by the hardening agent.
 
@@ -10,5 +10,5 @@
 
 **Harden Agent Version:** `2`
 
-Action **release-drafter--release-drafter/v7.3.1** was hardened automatically. 0 finding(s) were identified and resolved across 0 iteration(s).
+Action **release-drafter--release-drafter--autolabeler/v7.3.1** was hardened automatically. 0 finding(s) were identified and resolved across 0 iteration(s).
 

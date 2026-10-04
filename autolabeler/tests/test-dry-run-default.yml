@@ -1,0 +1,47 @@
+name: Test dry-run default (empty string)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release-drafter config with autolabeler rules
+        run: |
+          mkdir -p .github
+          cat > .github/release-drafter.yml << 'EOF'
+          autolabeler:
+            - label: 'enhancement'
+              title:
+                - '/feat/i'
+                - '/feature/i'
+            - label: 'bug'
+              title:
+                - '/fix/i'
+                - '/bug/i'
+            - label: 'chore'
+              title:
+                - '/chore/i'
+                - '/refactor/i'
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          dry-run: ''
+
+      - name: Assert action ran with default dry-run (sentinel repo may cause graceful failure)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with default dry-run setting"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

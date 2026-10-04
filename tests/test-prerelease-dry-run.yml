@@ -1,4 +1,4 @@
-name: Test basic dry-run
+name: Test prerelease dry-run
 on:
   workflow_dispatch:
 jobs:
@@ -12,6 +12,8 @@ jobs:
         continue-on-error: true
         with:
           dry-run: 'true'
+          prerelease: 'true'
+          prerelease-identifier: 'beta'
           token: ${{ github.token }}
 
       - name: Assert action ran (outputs set, or failed gracefully on the sentinel repo)
@@ -19,14 +21,12 @@ jobs:
           OUTCOME: ${{ steps.action.outcome }}
           ID: ${{ steps.action.outputs.id }}
           TAG_NAME: ${{ steps.action.outputs.tag_name }}
-          BODY: ${{ steps.action.outputs.body }}
         run: |
           echo "outcome: $OUTCOME"
           echo "id: $ID"
           echo "tag_name: $TAG_NAME"
-          echo "body: $BODY"
           if [ "$OUTCOME" = "success" ]; then
-            echo "Action succeeded in dry-run mode"
+            echo "Action succeeded in prerelease dry-run mode"
             echo "PASS: action ran successfully"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action failed gracefully (sentinel repo is not resolvable on GitHub)"
