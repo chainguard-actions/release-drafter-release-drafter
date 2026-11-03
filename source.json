@@ -4,8 +4,13 @@
   "version": "v7.9.0",
   "commit_sha": "72967cdc98ddd3160f1fc3dff619de365e137dd0",
   "url": "https://github.com/release-drafter/release-drafter",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/release-drafter/release-drafter/v7.9.0/sha256-15e0fe7b5cc8be0b30644f99fb33e615cbe1131f69c47a16904d77432168a288.tar.gz",
+    "sha256": "15e0fe7b5cc8be0b30644f99fb33e615cbe1131f69c47a16904d77432168a288",
+    "size_bytes": 403646
+  }
 }
